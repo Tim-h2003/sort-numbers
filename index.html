@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>作業2：Firestore 數字排序</title>
+  <style>
+    body {
+      background-color: #111;
+      color: #eee;
+      font-family: system-ui, -apple-system, "Segoe UI", Arial, sans-serif;
+      padding: 30px;
+    }
+    h1 {
+      font-size: 22px;
+      margin-bottom: 15px;
+    }
+    .card {
+      background: #1d1f22;
+      border-radius: 12px;
+      padding: 20px;
+      max-width: 560px;
+    }
+    ul {
+      list-style-type: none;
+      padding: 0;
+    }
+    li {
+      background: #2a2d30;
+      margin: 6px 0;
+      padding: 8px 12px;
+      border-radius: 6px;
+    }
+    .error {
+      color: #ff6b6b;
+    }
+  </style>
+</head>
+<body>
+  <h1>Firestore 數字排序結果（小 → 大）</h1>
+  <div class="card">
+    <div id="status">載入中…</div>
+    <ul id="numList"></ul>
+  </div>
+
+  <script type="module">
+    // ✅ 你的 Firebase 設定
+    const firebaseConfig = {
+      apiKey: "AIzaSyCraaDyKSaI091s9ceex8yI3Bu-EQejfZc",
+      authDomain: "sort-number-f8bad.firebaseapp.com",
+      projectId: "sort-number-f8bad",
+      storageBucket: "sort-number-f8bad.firebasestorage.app",
+      messagingSenderId: "1019579695347",
+      appId: "1:1019579695347:web:3d8e751d620bbb54187786",
+      measurementId: "G-TD7SKNLXW3"
+    };
+
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+    import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+    // 初始化 Firebase
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    const list = document.getElementById("numList");
+    const status = document.getElementById("status");
+
+    try {
+      const snap = await getDocs(collection(db, "numbers"));
+      const nums = [];
+
+      snap.forEach(doc => {
+        const v = doc.data()?.value;
+        if (typeof v === "number") nums.push(v);
+      });
+
+      nums.sort((a, b) => a - b);
+
+      if (nums.length === 0) {
+        status.innerHTML = "⚠️ Firestore 沒有資料，請建立集合 <code>numbers</code> 並加入 { value: 數字 }。";
+      } else {
+        status.textContent = `共 ${nums.length} 筆資料：`;
+        nums.forEach(n => {
+          const li = document.createElement("li");
+          li.textContent = n;
+          list.appendChild(li);
+        });
+      }
+    } catch (err) {
+      status.innerHTML = `<span class="error">讀取失敗：</span>${err?.message || err}`;
+    }
+  </script>
+</body>
+</html>
